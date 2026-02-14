@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { type Product } from "@/lib/products";
 import { supabase } from "@/integrations/supabase/client";
+import { compressImage } from "@/lib/imageUtils";
 import { Loader2, Sparkles, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -23,9 +24,12 @@ const TryOnCanvas = ({ userImage, product, onResult }: TryOnCanvasProps) => {
       setError(null);
 
       try {
+        // Compress image to ~768px and JPEG 0.7 to save AI credits
+        const compressedImage = await compressImage(userImage, 768, 0.7);
+
         const { data, error: fnError } = await supabase.functions.invoke("virtual-try-on", {
           body: {
-            userImage,
+            userImage: compressedImage,
             productId: product.id,
             productName: product.name,
             productCategory: product.category,
